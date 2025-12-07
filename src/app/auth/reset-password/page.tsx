@@ -2,8 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { Shield, Lock, AlertCircle, Loader2, CheckCircle } from 'lucide-react';
+import { Lock, AlertCircle, Loader2, CheckCircle } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
 export default function ResetPasswordPage() {
@@ -132,7 +133,13 @@ export default function ResetPasswordPage() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2 mb-6">
-            <Shield className="w-8 h-8 text-blue-600" />
+            <Image
+              src="/GovernAtlas.png"
+              alt="GovernAtlas"
+              width={32}
+              height={32}
+              className="w-8 h-8"
+            />
             <span className="font-bold text-gray-900 text-2xl">GovernAtlas</span>
           </Link>
           <h1 className="text-2xl font-bold text-gray-900">Create new password</h1>

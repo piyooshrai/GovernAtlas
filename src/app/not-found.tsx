@@ -1,5 +1,6 @@
 import Link from 'next/link';
-import { Search, Home, ArrowRight, Shield, Compass, BookOpen } from 'lucide-react';
+import Image from 'next/image';
+import { Search, Home, ArrowRight, Compass, BookOpen } from 'lucide-react';
 
 export default function NotFound() {
   const suggestions = [
@@ -13,7 +14,13 @@ export default function NotFound() {
       <div className="max-w-2xl w-full">
         <div className="text-center mb-12">
           <div className="inline-flex items-center justify-center w-20 h-20 bg-blue-100 rounded-full mb-6">
-            <Shield className="w-10 h-10 text-blue-600" />
+            <Image
+              src="/GovernAtlas.png"
+              alt="GovernAtlas"
+              width={40}
+              height={40}
+              className="w-10 h-10"
+            />
           </div>
           <h1 className="text-8xl font-bold text-gray-200 mb-2">404</h1>
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Page Not Found</h2>
