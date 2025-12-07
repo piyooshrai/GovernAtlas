@@ -210,7 +210,7 @@ export default function ToolDetailPage() {
                   User Reviews
                 </h2>
                 <Link
-                  href="/review"
+                  href={`/review/${slug}`}
                   className="text-blue-600 text-sm font-medium hover:text-blue-700"
                 >
                   Write a Review
@@ -295,7 +295,7 @@ export default function ToolDetailPage() {
               ) : (
                 <div className="text-center py-8 text-gray-500">
                   <p>No reviews yet. Be the first to review this tool!</p>
-                  <Link href="/review" className="btn-primary mt-4 inline-block">
+                  <Link href={`/review/${slug}`} className="btn-primary mt-4 inline-block">
                     Write a Review
                   </Link>
                 </div>
