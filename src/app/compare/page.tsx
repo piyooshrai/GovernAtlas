@@ -21,14 +21,18 @@ export default function ComparePage() {
     useCompare();
 
   // Get all unique attributes for comparison
-  const allCertifications = [
-    ...new Set(compareTools.flatMap((t) => t.certifications)),
-  ].sort();
-  const allUseCases = [...new Set(compareTools.flatMap((t) => t.useCases))].sort();
-  const allDeploymentOptions = [
-    ...new Set(compareTools.flatMap((t) => t.deploymentOptions)),
-  ].sort();
-  const allFeatures = [...new Set(compareTools.flatMap((t) => t.features))].sort();
+  const allCertifications = Array.from(
+    new Set(compareTools.flatMap((t) => t.certifications))
+  ).sort();
+  const allUseCases = Array.from(
+    new Set(compareTools.flatMap((t) => t.useCases))
+  ).sort();
+  const allDeploymentOptions = Array.from(
+    new Set(compareTools.flatMap((t) => t.deploymentOptions))
+  ).sort();
+  const allFeatures = Array.from(
+    new Set(compareTools.flatMap((t) => t.features))
+  ).sort();
 
   const renderCheck = (has: boolean) =>
     has ? (
