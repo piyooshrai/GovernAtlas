@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import { Header, Footer, CompareBar } from '@/components';
 import { CompareProvider } from '@/context/CompareContext';
+import { AuthProvider } from '@/context/AuthContext';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -50,14 +51,16 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <CompareProvider>
-          <div className="min-h-screen flex flex-col">
-            <Header />
-            <main className="flex-1">{children}</main>
-            <Footer />
-            <CompareBar />
-          </div>
-        </CompareProvider>
+        <AuthProvider>
+          <CompareProvider>
+            <div className="min-h-screen flex flex-col">
+              <Header />
+              <main className="flex-1">{children}</main>
+              <Footer />
+              <CompareBar />
+            </div>
+          </CompareProvider>
+        </AuthProvider>
       </body>
     </html>
   );

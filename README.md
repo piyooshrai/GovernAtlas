@@ -18,6 +18,8 @@ A modern marketplace for AI tools designed for regulated industries. Browse 150+
 - **Styling**: Tailwind CSS
 - **Icons**: Lucide React
 - **State Management**: React Context API
+- **Backend**: Supabase (PostgreSQL, Auth, Storage)
+- **Authentication**: Supabase Auth (Email/Password, Google OAuth)
 
 ## Getting Started
 
@@ -39,23 +41,48 @@ cd GovernAtlas
 npm install
 ```
 
-3. Run the development server:
+3. Set up Supabase:
+   - Create a new project at [supabase.com](https://supabase.com)
+   - Go to SQL Editor and run the schema from `supabase/schema.sql`
+   - Copy your project URL and anon key from Settings > API
+
+4. Configure environment variables:
+```bash
+cp .env.example .env.local
+```
+
+Edit `.env.local` with your Supabase credentials:
+```
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
+
+5. (Optional) Enable Google OAuth:
+   - In Supabase Dashboard, go to Authentication > Providers
+   - Enable Google and add your OAuth credentials
+
+6. Run the development server:
 ```bash
 npm run dev
 ```
 
-4. Open [http://localhost:3000](http://localhost:3000) in your browser.
+7. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## Project Structure
 
 ```
 src/
 ├── app/                    # Next.js App Router pages
+│   ├── auth/              # Authentication pages
+│   │   ├── signin/        # Sign in page
+│   │   ├── signup/        # Sign up page
+│   │   └── callback/      # OAuth callback handler
 │   ├── browse/            # Browse/search page
 │   ├── compare/           # Tool comparison page
 │   ├── industries/        # Industries overview
 │   ├── resources/         # Resources page
 │   ├── tool/[slug]/       # Dynamic tool detail pages
+│   ├── vendors/           # Vendor submission form
 │   ├── globals.css        # Global styles
 │   ├── layout.tsx         # Root layout
 │   └── page.tsx           # Home page
@@ -63,16 +90,26 @@ src/
 │   ├── CompareBar.tsx     # Floating compare bar
 │   ├── FilterSidebar.tsx  # Browse page filters
 │   ├── Footer.tsx         # Site footer
-│   ├── Header.tsx         # Site header with nav
+│   ├── Header.tsx         # Site header with auth
 │   ├── SearchBar.tsx      # Search with autocomplete
 │   └── ToolCard.tsx       # Tool listing card
 ├── context/               # React Context providers
+│   ├── AuthContext.tsx    # Authentication state
 │   └── CompareContext.tsx # Compare functionality state
-├── data/                  # Static data
+├── data/                  # Static data (fallback)
 │   ├── reviews.ts         # User reviews data
 │   └── tools.ts           # Tool listings (25 tools)
+├── lib/
+│   └── supabase/          # Supabase client configuration
+│       ├── client.ts      # Browser client
+│       ├── server.ts      # Server client
+│       ├── middleware.ts  # Session refresh
+│       └── types.ts       # Database types
 └── types/                 # TypeScript types
     └── index.ts           # Type definitions
+
+supabase/
+└── schema.sql             # Database schema & migrations
 ```
 
 ## Deployment
@@ -138,6 +175,26 @@ Each tool includes:
 - Deployment options
 - Pricing tier
 - User reviews
+
+## Database Schema
+
+The Supabase database includes the following tables:
+
+| Table | Description |
+|-------|-------------|
+| `profiles` | User profiles (extends Supabase auth) |
+| `vendors` | Vendor/company information |
+| `tools` | AI tool listings |
+| `industries` | Industry categories |
+| `use_cases` | Use case categories |
+| `certifications` | Compliance certifications |
+| `reviews` | User reviews for tools |
+| `vendor_submissions` | Pending vendor applications |
+| `tool_industries` | Tool-industry relationships |
+| `tool_use_cases` | Tool-use case relationships |
+| `tool_certifications` | Tool-certification relationships |
+
+All tables have Row Level Security (RLS) policies configured for proper access control.
 
 ## Contributing
 
