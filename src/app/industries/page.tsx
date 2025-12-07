@@ -1,85 +1,45 @@
-import React from 'react';
+import { Metadata } from 'next';
 import Link from 'next/link';
 import {
   Building2,
   Shield,
   TrendingUp,
-  Users,
-  Briefcase,
-  Heart,
   Scale,
-  Zap,
+  Landmark,
+  ShieldCheck,
+  Pill,
   GraduationCap,
+  Factory,
   ChevronRight,
 } from 'lucide-react';
-import { tools, industries } from '@/data/tools';
-import { ToolCard } from '@/components';
+import { tools } from '@/data/tools';
+import { industriesData } from '@/data/industries';
 
-const industryData: Record<
-  string,
-  {
-    icon: React.ReactNode;
-    description: string;
-    color: string;
-    bgColor: string;
-  }
-> = {
-  Healthcare: {
-    icon: <Heart className="w-8 h-8" />,
-    description:
-      'AI tools for clinical documentation, diagnostics, patient engagement, and healthcare operations with HIPAA and HITRUST compliance.',
-    color: 'text-red-600',
-    bgColor: 'bg-red-50',
-  },
-  'Financial Services': {
-    icon: <TrendingUp className="w-8 h-8" />,
-    description:
-      'AI solutions for banking, wealth management, trading, and financial compliance with SOC 2 and PCI DSS certifications.',
-    color: 'text-green-600',
-    bgColor: 'bg-green-50',
-  },
-  Legal: {
-    icon: <Scale className="w-8 h-8" />,
-    description:
-      'AI-powered legal research, contract analysis, e-discovery, and case management tools for law firms and legal departments.',
-    color: 'text-purple-600',
-    bgColor: 'bg-purple-50',
-  },
-  Government: {
-    icon: <Building2 className="w-8 h-8" />,
-    description:
-      'FedRAMP and StateRAMP authorized AI tools for citizen services, benefits administration, and government operations.',
-    color: 'text-blue-600',
-    bgColor: 'bg-blue-50',
-  },
-  Insurance: {
-    icon: <Shield className="w-8 h-8" />,
-    description:
-      'AI tools for claims processing, underwriting, fraud detection, and policy administration for insurance carriers.',
-    color: 'text-orange-600',
-    bgColor: 'bg-orange-50',
-  },
-  Pharmaceutical: {
-    icon: <Briefcase className="w-8 h-8" />,
-    description:
-      'AI solutions for drug discovery, clinical trials, regulatory submissions, and pharmacovigilance with FDA compliance.',
-    color: 'text-teal-600',
-    bgColor: 'bg-teal-50',
-  },
-  Energy: {
-    icon: <Zap className="w-8 h-8" />,
-    description:
-      'AI tools for grid optimization, predictive maintenance, energy trading, and NERC compliance for utilities.',
-    color: 'text-yellow-600',
-    bgColor: 'bg-yellow-50',
-  },
-  Education: {
-    icon: <GraduationCap className="w-8 h-8" />,
-    description:
-      'FERPA-compliant AI tools for personalized learning, student success, administrative automation, and educational analytics.',
-    color: 'text-indigo-600',
-    bgColor: 'bg-indigo-50',
-  },
+export const metadata: Metadata = {
+  title: 'Browse by Industry | GovernAtlas',
+  description: 'Explore AI tools designed for regulated industries including healthcare, financial services, legal, government, and more.',
+};
+
+const iconMap: Record<string, React.ReactNode> = {
+  Shield: <Shield className="w-8 h-8" />,
+  TrendingUp: <TrendingUp className="w-8 h-8" />,
+  Scale: <Scale className="w-8 h-8" />,
+  Landmark: <Landmark className="w-8 h-8" />,
+  ShieldCheck: <ShieldCheck className="w-8 h-8" />,
+  Pill: <Pill className="w-8 h-8" />,
+  GraduationCap: <GraduationCap className="w-8 h-8" />,
+  Factory: <Factory className="w-8 h-8" />,
+};
+
+const colorMap: Record<string, { color: string; bgColor: string }> = {
+  Healthcare: { color: 'text-red-600', bgColor: 'bg-red-50' },
+  'Financial Services': { color: 'text-green-600', bgColor: 'bg-green-50' },
+  Legal: { color: 'text-purple-600', bgColor: 'bg-purple-50' },
+  Government: { color: 'text-blue-600', bgColor: 'bg-blue-50' },
+  Insurance: { color: 'text-orange-600', bgColor: 'bg-orange-50' },
+  Pharmaceutical: { color: 'text-teal-600', bgColor: 'bg-teal-50' },
+  Education: { color: 'text-indigo-600', bgColor: 'bg-indigo-50' },
+  Manufacturing: { color: 'text-gray-600', bgColor: 'bg-gray-100' },
 };
 
 export default function IndustriesPage() {
@@ -101,73 +61,87 @@ export default function IndustriesPage() {
       {/* Industries Grid */}
       <div className="max-w-7xl mx-auto px-4 py-12">
         <div className="grid md:grid-cols-2 gap-8">
-          {industries.map((industry) => {
+          {industriesData.map((industry) => {
             const industryTools = tools.filter((t) =>
-              t.industries.includes(industry as any)
+              t.industries.includes(industry.name as any)
             );
-            const topTools = industryTools
+            const topTools = [...industryTools]
               .sort((a, b) => b.score - a.score)
               .slice(0, 3);
-            const data = industryData[industry] || {
-              icon: <Building2 className="w-8 h-8" />,
-              description: `AI tools for ${industry}`,
+            const colors = colorMap[industry.name] || {
               color: 'text-gray-600',
               bgColor: 'bg-gray-50',
             };
 
             return (
               <div
-                key={industry}
-                className="bg-white border border-gray-200 rounded-xl overflow-hidden"
+                key={industry.slug}
+                className="bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-lg transition-shadow"
               >
-                <div className="p-6 border-b border-gray-100">
+                <Link href={`/industries/${industry.slug}`} className="block p-6 border-b border-gray-100">
                   <div className="flex items-start gap-4">
-                    <div className={`p-3 rounded-lg ${data.bgColor} ${data.color}`}>
-                      {data.icon}
+                    <div className={`p-3 rounded-lg ${colors.bgColor} ${colors.color}`}>
+                      {iconMap[industry.icon] || <Building2 className="w-8 h-8" />}
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center justify-between mb-2">
                         <h2 className="text-xl font-bold text-gray-900">
-                          {industry}
+                          {industry.name}
                         </h2>
                         <span className="text-sm text-gray-500">
                           {industryTools.length} tools
                         </span>
                       </div>
-                      <p className="text-gray-600 text-sm">{data.description}</p>
+                      <p className="text-gray-600 text-sm">{industry.description}</p>
                     </div>
                   </div>
-                </div>
+                </Link>
 
                 <div className="p-4 bg-gray-50">
-                  <p className="text-sm font-medium text-gray-700 mb-3">
-                    Top rated tools:
-                  </p>
-                  <div className="space-y-2">
-                    {topTools.map((tool) => (
-                      <Link
-                        key={tool.id}
-                        href={`/tool/${tool.slug}`}
-                        className="flex items-center justify-between p-3 bg-white rounded-lg hover:shadow-sm transition-shadow"
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {industry.certifications.slice(0, 4).map((cert, i) => (
+                      <span
+                        key={i}
+                        className="px-2 py-1 bg-white border border-gray-200 rounded text-xs text-gray-600"
                       >
-                        <div>
-                          <p className="font-medium text-gray-900">{tool.name}</p>
-                          <p className="text-xs text-gray-500">{tool.vendor}</p>
-                        </div>
-                        <div className="flex items-center gap-1 text-sm">
-                          <span className="font-semibold">
-                            {(tool.score / 20).toFixed(1)}
-                          </span>
-                          <span className="text-yellow-500">★</span>
-                        </div>
-                      </Link>
+                        {cert}
+                      </span>
                     ))}
                   </div>
+
+                  {topTools.length > 0 && (
+                    <>
+                      <p className="text-sm font-medium text-gray-700 mb-3">
+                        Top rated tools:
+                      </p>
+                      <div className="space-y-2">
+                        {topTools.map((tool) => (
+                          <Link
+                            key={tool.id}
+                            href={`/tool/${tool.slug}`}
+                            className="flex items-center justify-between p-3 bg-white rounded-lg hover:shadow-sm transition-shadow"
+                          >
+                            <div>
+                              <p className="font-medium text-gray-900">{tool.name}</p>
+                              <p className="text-xs text-gray-500">{tool.vendor}</p>
+                            </div>
+                            <div className="flex items-center gap-1 text-sm">
+                              <span className="font-semibold text-gray-900">
+                                {tool.score}
+                              </span>
+                              <span className="text-xs text-gray-500">/100</span>
+                            </div>
+                          </Link>
+                        ))}
+                      </div>
+                    </>
+                  )}
+
                   <Link
-                    href={`/browse?industry=${encodeURIComponent(industry)}`}
+                    href={`/industries/${industry.slug}`}
                     className="mt-4 flex items-center justify-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-700"
                   >
-                    View all {industry} tools
+                    View all {industry.name} tools
                     <ChevronRight className="w-4 h-4" />
                   </Link>
                 </div>
@@ -187,7 +161,10 @@ export default function IndustriesPage() {
             We&apos;re constantly adding new tools and industries. Let us know what
             you&apos;re looking for.
           </p>
-          <Link href="/contact" className="btn-primary">
+          <Link
+            href="/contact"
+            className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors"
+          >
             Contact Us
           </Link>
         </div>
