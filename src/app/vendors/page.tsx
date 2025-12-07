@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { createClient } from '@/lib/supabase/client';
+import { InsertTables } from '@/lib/supabase/types';
 import { industries, useCases, certifications, pricingTiers, deploymentOptions } from '@/data/tools';
 
 const companySizes = ['1-9', '10-49', '50-249', '250-999', '1000+'];
@@ -122,32 +123,38 @@ export default function VendorSubmissionPage() {
     setError('');
 
     try {
+      const submissionData: InsertTables<'vendor_submissions'> = {
+        user_id: user?.id || null,
+        company_name: formData.companyName,
+        company_website: formData.companyWebsite,
+        company_description: formData.companyDescription || null,
+        company_location: formData.companyLocation || null,
+        company_size: formData.companySize || null,
+        company_founded: formData.companyFounded ? parseInt(formData.companyFounded) : null,
+        contact_name: formData.contactName,
+        contact_email: formData.contactEmail,
+        contact_phone: formData.contactPhone || null,
+        contact_role: formData.contactRole || null,
+        tool_name: formData.toolName,
+        tool_tagline: formData.toolTagline || null,
+        tool_description: formData.toolDescription || null,
+        tool_website: formData.toolWebsite || null,
+        tool_pricing: formData.toolPricing || null,
+        industries: formData.selectedIndustries.length > 0 ? formData.selectedIndustries : null,
+        use_cases: formData.selectedUseCases.length > 0 ? formData.selectedUseCases : null,
+        certifications: formData.selectedCertifications.length > 0 ? formData.selectedCertifications : null,
+        features: formData.features.split('\n').filter((f) => f.trim()).length > 0
+          ? formData.features.split('\n').filter((f) => f.trim())
+          : null,
+        integrations: formData.integrations.split('\n').filter((i) => i.trim()).length > 0
+          ? formData.integrations.split('\n').filter((i) => i.trim())
+          : null,
+        deployment_options: formData.selectedDeploymentOptions.length > 0 ? formData.selectedDeploymentOptions : null,
+      };
+
       const { error: submitError } = await supabase
         .from('vendor_submissions')
-        .insert({
-          user_id: user?.id || null,
-          company_name: formData.companyName,
-          company_website: formData.companyWebsite,
-          company_description: formData.companyDescription,
-          company_location: formData.companyLocation,
-          company_size: formData.companySize,
-          company_founded: formData.companyFounded ? parseInt(formData.companyFounded) : null,
-          contact_name: formData.contactName,
-          contact_email: formData.contactEmail,
-          contact_phone: formData.contactPhone,
-          contact_role: formData.contactRole,
-          tool_name: formData.toolName,
-          tool_tagline: formData.toolTagline,
-          tool_description: formData.toolDescription,
-          tool_website: formData.toolWebsite,
-          tool_pricing: formData.toolPricing,
-          industries: formData.selectedIndustries,
-          use_cases: formData.selectedUseCases,
-          certifications: formData.selectedCertifications,
-          features: formData.features.split('\n').filter((f) => f.trim()),
-          integrations: formData.integrations.split('\n').filter((i) => i.trim()),
-          deployment_options: formData.selectedDeploymentOptions,
-        });
+        .insert(submissionData as any);
 
       if (submitError) throw submitError;
 
