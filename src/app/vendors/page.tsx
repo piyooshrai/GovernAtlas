@@ -56,6 +56,10 @@ interface FormData {
   selectedDeploymentOptions: string[];
 }
 
+interface ValidationErrors {
+  [key: string]: string;
+}
+
 const initialFormData: FormData = {
   companyName: '',
   companyWebsite: '',
@@ -80,6 +84,35 @@ const initialFormData: FormData = {
   selectedDeploymentOptions: [],
 };
 
+// Validation helpers
+const isValidEmail = (email: string): boolean => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+};
+
+const isValidUrl = (url: string): boolean => {
+  if (!url) return true; // Optional fields
+  try {
+    new URL(url.startsWith('http') ? url : `https://${url}`);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+const isValidPhone = (phone: string): boolean => {
+  if (!phone) return true; // Optional field
+  const phoneRegex = /^[+]?[\d\s\-().]{7,20}$/;
+  return phoneRegex.test(phone);
+};
+
+const isValidYear = (year: string): boolean => {
+  if (!year) return true; // Optional field
+  const yearNum = parseInt(year);
+  const currentYear = new Date().getFullYear();
+  return yearNum >= 1900 && yearNum <= currentYear;
+};
+
 export default function VendorSubmissionPage() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
@@ -88,11 +121,25 @@ export default function VendorSubmissionPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
+  const [touched, setTouched] = useState<{ [key: string]: boolean }>({});
 
   const supabase = createClient();
 
   const updateField = (field: keyof FormData, value: string | string[]) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+    // Clear validation error when field is updated
+    if (validationErrors[field]) {
+      setValidationErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[field];
+        return newErrors;
+      });
+    }
+  };
+
+  const markTouched = (field: string) => {
+    setTouched((prev) => ({ ...prev, [field]: true }));
   };
 
   const toggleArrayField = (field: keyof FormData, value: string) => {
@@ -103,22 +150,124 @@ export default function VendorSubmissionPage() {
     updateField(field, newArray);
   };
 
+  // Validation functions for each step
+  const validateCompanyStep = (): ValidationErrors => {
+    const errors: ValidationErrors = {};
+
+    if (!formData.companyName.trim()) {
+      errors.companyName = 'Company name is required';
+    } else if (formData.companyName.trim().length < 2) {
+      errors.companyName = 'Company name must be at least 2 characters';
+    }
+
+    if (!formData.companyWebsite.trim()) {
+      errors.companyWebsite = 'Company website is required';
+    } else if (!isValidUrl(formData.companyWebsite)) {
+      errors.companyWebsite = 'Please enter a valid URL';
+    }
+
+    if (formData.companyFounded && !isValidYear(formData.companyFounded)) {
+      errors.companyFounded = 'Please enter a valid year (1900 - present)';
+    }
+
+    return errors;
+  };
+
+  const validateContactStep = (): ValidationErrors => {
+    const errors: ValidationErrors = {};
+
+    if (!formData.contactName.trim()) {
+      errors.contactName = 'Contact name is required';
+    } else if (formData.contactName.trim().length < 2) {
+      errors.contactName = 'Name must be at least 2 characters';
+    }
+
+    if (!formData.contactEmail.trim()) {
+      errors.contactEmail = 'Email address is required';
+    } else if (!isValidEmail(formData.contactEmail)) {
+      errors.contactEmail = 'Please enter a valid email address';
+    }
+
+    if (formData.contactPhone && !isValidPhone(formData.contactPhone)) {
+      errors.contactPhone = 'Please enter a valid phone number';
+    }
+
+    return errors;
+  };
+
+  const validateToolStep = (): ValidationErrors => {
+    const errors: ValidationErrors = {};
+
+    if (!formData.toolName.trim()) {
+      errors.toolName = 'Tool name is required';
+    } else if (formData.toolName.trim().length < 2) {
+      errors.toolName = 'Tool name must be at least 2 characters';
+    }
+
+    if (formData.selectedIndustries.length === 0) {
+      errors.selectedIndustries = 'Please select at least one industry';
+    }
+
+    if (formData.toolWebsite && !isValidUrl(formData.toolWebsite)) {
+      errors.toolWebsite = 'Please enter a valid URL';
+    }
+
+    return errors;
+  };
+
+  const validateCurrentStep = (): boolean => {
+    let errors: ValidationErrors = {};
+
+    switch (step) {
+      case 'company':
+        errors = validateCompanyStep();
+        break;
+      case 'contact':
+        errors = validateContactStep();
+        break;
+      case 'tool':
+        errors = validateToolStep();
+        break;
+      case 'review':
+        // Validate all steps on review
+        errors = {
+          ...validateCompanyStep(),
+          ...validateContactStep(),
+          ...validateToolStep(),
+        };
+        break;
+    }
+
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const steps: Step[] = ['company', 'contact', 'tool', 'review'];
   const currentStepIndex = steps.indexOf(step);
 
   const goNext = () => {
-    if (currentStepIndex < steps.length - 1) {
+    if (validateCurrentStep() && currentStepIndex < steps.length - 1) {
       setStep(steps[currentStepIndex + 1]);
+      setValidationErrors({});
+      setTouched({});
     }
   };
 
   const goPrev = () => {
     if (currentStepIndex > 0) {
       setStep(steps[currentStepIndex - 1]);
+      setValidationErrors({});
+      setTouched({});
     }
   };
 
   const handleSubmit = async () => {
+    // Validate all steps before submitting
+    if (!validateCurrentStep()) {
+      setError('Please fix the validation errors before submitting.');
+      return;
+    }
+
     setLoading(true);
     setError('');
 
@@ -264,10 +413,13 @@ export default function VendorSubmissionPage() {
                     type="text"
                     value={formData.companyName}
                     onChange={(e) => updateField('companyName', e.target.value)}
-                    className="input"
+                    onBlur={() => markTouched('companyName')}
+                    className={`input ${validationErrors.companyName ? 'border-red-500 focus:ring-red-500' : ''}`}
                     placeholder="Acme AI Inc."
-                    required
                   />
+                  {validationErrors.companyName && (
+                    <p className="mt-1 text-sm text-red-600">{validationErrors.companyName}</p>
+                  )}
                 </div>
 
                 <div className="sm:col-span-2">
@@ -280,11 +432,14 @@ export default function VendorSubmissionPage() {
                       type="url"
                       value={formData.companyWebsite}
                       onChange={(e) => updateField('companyWebsite', e.target.value)}
-                      className="input pl-10"
+                      onBlur={() => markTouched('companyWebsite')}
+                      className={`input pl-10 ${validationErrors.companyWebsite ? 'border-red-500 focus:ring-red-500' : ''}`}
                       placeholder="https://www.example.com"
-                      required
                     />
                   </div>
+                  {validationErrors.companyWebsite && (
+                    <p className="mt-1 text-sm text-red-600">{validationErrors.companyWebsite}</p>
+                  )}
                 </div>
 
                 <div className="sm:col-span-2">
@@ -343,12 +498,16 @@ export default function VendorSubmissionPage() {
                       type="number"
                       value={formData.companyFounded}
                       onChange={(e) => updateField('companyFounded', e.target.value)}
-                      className="input pl-10"
+                      onBlur={() => markTouched('companyFounded')}
+                      className={`input pl-10 ${validationErrors.companyFounded ? 'border-red-500 focus:ring-red-500' : ''}`}
                       placeholder="2020"
                       min="1900"
                       max={new Date().getFullYear()}
                     />
                   </div>
+                  {validationErrors.companyFounded && (
+                    <p className="mt-1 text-sm text-red-600">{validationErrors.companyFounded}</p>
+                  )}
                 </div>
               </div>
             </div>
@@ -373,11 +532,14 @@ export default function VendorSubmissionPage() {
                       type="text"
                       value={formData.contactName}
                       onChange={(e) => updateField('contactName', e.target.value)}
-                      className="input pl-10"
+                      onBlur={() => markTouched('contactName')}
+                      className={`input pl-10 ${validationErrors.contactName ? 'border-red-500 focus:ring-red-500' : ''}`}
                       placeholder="John Doe"
-                      required
                     />
                   </div>
+                  {validationErrors.contactName && (
+                    <p className="mt-1 text-sm text-red-600">{validationErrors.contactName}</p>
+                  )}
                 </div>
 
                 <div>
@@ -403,11 +565,14 @@ export default function VendorSubmissionPage() {
                       type="email"
                       value={formData.contactEmail}
                       onChange={(e) => updateField('contactEmail', e.target.value)}
-                      className="input pl-10"
+                      onBlur={() => markTouched('contactEmail')}
+                      className={`input pl-10 ${validationErrors.contactEmail ? 'border-red-500 focus:ring-red-500' : ''}`}
                       placeholder="john@company.com"
-                      required
                     />
                   </div>
+                  {validationErrors.contactEmail && (
+                    <p className="mt-1 text-sm text-red-600">{validationErrors.contactEmail}</p>
+                  )}
                 </div>
 
                 <div>
@@ -420,10 +585,14 @@ export default function VendorSubmissionPage() {
                       type="tel"
                       value={formData.contactPhone}
                       onChange={(e) => updateField('contactPhone', e.target.value)}
-                      className="input pl-10"
+                      onBlur={() => markTouched('contactPhone')}
+                      className={`input pl-10 ${validationErrors.contactPhone ? 'border-red-500 focus:ring-red-500' : ''}`}
                       placeholder="+1 (555) 123-4567"
                     />
                   </div>
+                  {validationErrors.contactPhone && (
+                    <p className="mt-1 text-sm text-red-600">{validationErrors.contactPhone}</p>
+                  )}
                 </div>
               </div>
 
@@ -458,10 +627,13 @@ export default function VendorSubmissionPage() {
                     type="text"
                     value={formData.toolName}
                     onChange={(e) => updateField('toolName', e.target.value)}
-                    className="input"
+                    onBlur={() => markTouched('toolName')}
+                    className={`input ${validationErrors.toolName ? 'border-red-500 focus:ring-red-500' : ''}`}
                     placeholder="AI Assistant Pro"
-                    required
                   />
+                  {validationErrors.toolName && (
+                    <p className="mt-1 text-sm text-red-600">{validationErrors.toolName}</p>
+                  )}
                 </div>
 
                 <div>
@@ -498,9 +670,13 @@ export default function VendorSubmissionPage() {
                       type="url"
                       value={formData.toolWebsite}
                       onChange={(e) => updateField('toolWebsite', e.target.value)}
-                      className="input"
+                      onBlur={() => markTouched('toolWebsite')}
+                      className={`input ${validationErrors.toolWebsite ? 'border-red-500 focus:ring-red-500' : ''}`}
                       placeholder="https://www.example.com/product"
                     />
+                    {validationErrors.toolWebsite && (
+                      <p className="mt-1 text-sm text-red-600">{validationErrors.toolWebsite}</p>
+                    )}
                   </div>
 
                   <div>
@@ -542,6 +718,9 @@ export default function VendorSubmissionPage() {
                       </button>
                     ))}
                   </div>
+                  {validationErrors.selectedIndustries && (
+                    <p className="mt-1 text-sm text-red-600">{validationErrors.selectedIndustries}</p>
+                  )}
                 </div>
 
                 <div>
