@@ -2,8 +2,9 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { Shield, Menu, X, GitCompare, User, LogOut, Settings, ChevronDown } from 'lucide-react';
+import { Menu, X, GitCompare, User, LogOut, Settings, ChevronDown } from 'lucide-react';
 import { useCompare } from '@/context/CompareContext';
 import { useAuth } from '@/context/AuthContext';
 
@@ -45,7 +46,13 @@ export default function Header() {
       <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
         <div className="flex items-center gap-8">
           <Link href="/" className="flex items-center gap-2">
-            <Shield className="w-7 h-7 text-blue-600" />
+            <Image
+              src="/GovernAtlas.png"
+              alt="GovernAtlas"
+              width={32}
+              height={32}
+              className="w-8 h-8"
+            />
             <span className="font-bold text-gray-900 text-xl">GovernAtlas</span>
           </Link>
           <nav className="hidden md:flex items-center gap-6 text-sm">

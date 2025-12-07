@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { Shield } from 'lucide-react';
+import Image from 'next/image';
 
 export default function Footer() {
   return (
@@ -10,7 +10,13 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto px-4">
         {/* Logo */}
         <div className="flex items-center gap-2 mb-8">
-          <Shield className="w-6 h-6 text-blue-500" />
+          <Image
+            src="/GovernAtlas.png"
+            alt="GovernAtlas"
+            width={24}
+            height={24}
+            className="w-6 h-6"
+          />
           <span className="font-bold text-white text-lg">GovernAtlas</span>
         </div>
 
