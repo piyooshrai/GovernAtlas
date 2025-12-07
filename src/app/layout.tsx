@@ -23,6 +23,15 @@ export const metadata: Metadata = {
     'governance',
   ],
   authors: [{ name: 'GovernAtlas' }],
+  metadataBase: new URL('https://governatlas.com'),
+  icons: {
+    icon: [
+      { url: '/GovernAtlas.png', type: 'image/png' },
+    ],
+    apple: [
+      { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
+    ],
+  },
   openGraph: {
     title: 'GovernAtlas - AI Tools for Regulated Industries',
     description:
@@ -30,12 +39,21 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'en_US',
     siteName: 'GovernAtlas',
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'GovernAtlas - AI Tools for Regulated Industries',
+      },
+    ],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'GovernAtlas - AI Tools for Regulated Industries',
     description:
       'Discover and compare AI tools built for regulated industries with governance scores and compliance certifications.',
+    images: ['/og-image.png'],
   },
   robots: {
     index: true,
