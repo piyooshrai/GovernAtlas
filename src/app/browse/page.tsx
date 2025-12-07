@@ -1,5 +1,15 @@
 import { Suspense } from 'react';
+import { Metadata } from 'next';
 import BrowseContent from './BrowseContent';
+
+export const metadata: Metadata = {
+  title: 'Browse AI Tools | GovernAtlas',
+  description: 'Search and filter AI tools for regulated industries. Compare governance scores, certifications, and features across 75+ verified tools.',
+  openGraph: {
+    title: 'Browse AI Tools | GovernAtlas',
+    description: 'Search and filter AI tools for regulated industries. Compare governance scores, certifications, and features.',
+  },
+};
 
 function BrowseLoading() {
   return (

@@ -1,175 +1,199 @@
-import React from 'react';
+import { Metadata } from 'next';
 import Link from 'next/link';
 import {
   BookOpen,
   FileText,
   HelpCircle,
-  Video,
-  ChevronRight,
-  Download,
+  BookMarked,
+  ArrowRight,
+  Clock,
+  Eye,
 } from 'lucide-react';
+import { blogPosts, guides, faqs } from '@/data/resources';
 
-const resources = [
-  {
-    title: 'Buyer\'s Guides',
-    description: 'Comprehensive guides to help you evaluate and select AI tools for your industry.',
-    icon: BookOpen,
-    items: [
-      { title: 'Healthcare AI Buyer\'s Guide 2025', type: 'PDF' },
-      { title: 'Financial Services AI Compliance Checklist', type: 'PDF' },
-      { title: 'Government AI Procurement Guide', type: 'PDF' },
-    ],
-  },
-  {
-    title: 'Research Reports',
-    description: 'In-depth analysis and market research on AI adoption in regulated industries.',
-    icon: FileText,
-    items: [
-      { title: 'State of AI in Healthcare 2025', type: 'Report' },
-      { title: 'AI Compliance Trends in Financial Services', type: 'Report' },
-      { title: 'FedRAMP Authorization Landscape', type: 'Report' },
-    ],
-  },
-  {
-    title: 'Webinars & Videos',
-    description: 'Expert-led sessions on AI governance, compliance, and implementation.',
-    icon: Video,
-    items: [
-      { title: 'Building a Compliant AI Strategy', type: 'Webinar' },
-      { title: 'HIPAA Compliance for AI Tools', type: 'Video' },
-      { title: 'SOC 2 Certification Explained', type: 'Video' },
-    ],
-  },
-];
-
-const faqs = [
-  {
-    question: 'How does GovernAtlas verify vendors?',
-    answer: 'We verify vendors through a rigorous process that includes certification verification, security assessment review, and validation of company information. Verified vendors display a green checkmark badge.',
-  },
-  {
-    question: 'What is the Governance Score?',
-    answer: 'The Governance Score (out of 5) is calculated based on compliance certifications, security practices, user reviews, and vendor transparency. Higher scores indicate better governance practices.',
-  },
-  {
-    question: 'How are reviews moderated?',
-    answer: 'All reviews go through our moderation process to ensure authenticity. We verify reviewer identity and check for conflicts of interest. Verified reviews are marked with a badge.',
-  },
-  {
-    question: 'Can vendors pay to improve their listing?',
-    answer: 'No. Vendor scores and rankings are based purely on objective criteria and user reviews. Paid features are limited to enhanced profiles and advertising, clearly marked as sponsored.',
-  },
-];
+export const metadata: Metadata = {
+  title: 'Resources | GovernAtlas',
+  description: 'Guides, blog posts, FAQs, and glossary for AI procurement in regulated industries.',
+};
 
 export default function ResourcesPage() {
+  const featuredPosts = blogPosts.slice(0, 3);
+  const featuredGuides = guides.slice(0, 3);
+  const featuredFaqs = faqs.slice(0, 5);
+
   return (
     <div className="bg-gray-50 min-h-screen">
-      {/* Hero */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 py-12 text-center">
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            Resources
-          </h1>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Guides, reports, and educational content to help you navigate AI adoption
-            in regulated industries.
+      {/* Header */}
+      <section className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 py-16 text-center">
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">Resources</h1>
+          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            Guides, insights, and tools for AI procurement in regulated industries
           </p>
         </div>
-      </div>
+      </section>
 
-      {/* Resources Grid */}
-      <div className="max-w-7xl mx-auto px-4 py-12">
-        <div className="grid md:grid-cols-3 gap-8">
-          {resources.map((resource) => (
-            <div key={resource.title} className="card p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="p-2 bg-blue-50 rounded-lg text-blue-600">
-                  <resource.icon className="w-6 h-6" />
-                </div>
-                <h2 className="text-xl font-bold text-gray-900">{resource.title}</h2>
-              </div>
-              <p className="text-gray-600 text-sm mb-6">{resource.description}</p>
-              <div className="space-y-3">
-                {resource.items.map((item) => (
-                  <div
-                    key={item.title}
-                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer group"
-                  >
-                    <div>
-                      <p className="font-medium text-gray-900 text-sm group-hover:text-blue-600">
-                        {item.title}
-                      </p>
-                      <p className="text-xs text-gray-500">{item.type}</p>
-                    </div>
-                    <Download className="w-4 h-4 text-gray-400 group-hover:text-blue-600" />
-                  </div>
-                ))}
-              </div>
-              <button className="mt-4 text-sm font-medium text-blue-600 hover:text-blue-700 flex items-center gap-1">
-                View all <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Methodology */}
-      <div className="bg-white border-y border-gray-200 py-12">
-        <div className="max-w-4xl mx-auto px-4">
-          <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Our Methodology</h2>
-            <p className="text-gray-600">
-              How we evaluate and score AI tools for regulated industries
+      {/* Resource Categories */}
+      <section className="max-w-7xl mx-auto px-4 py-12">
+        <div className="grid md:grid-cols-4 gap-6">
+          <Link
+            href="/resources/guides"
+            className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-lg transition-shadow"
+          >
+            <BookOpen className="w-8 h-8 text-blue-600 mb-4" />
+            <h3 className="font-semibold text-gray-900 mb-2">Guides</h3>
+            <p className="text-sm text-gray-600">
+              Downloadable procurement checklists and compliance guides
             </p>
-          </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[
-              { label: 'Compliance', value: '30%', desc: 'Certifications & audits' },
-              { label: 'Security', value: '25%', desc: 'Data protection practices' },
-              { label: 'User Reviews', value: '25%', desc: 'Verified user feedback' },
-              { label: 'Transparency', value: '20%', desc: 'Vendor openness & docs' },
-            ].map((item) => (
-              <div key={item.label} className="text-center p-4 bg-gray-50 rounded-lg">
-                <p className="text-3xl font-bold text-blue-600 mb-1">{item.value}</p>
-                <p className="font-medium text-gray-900">{item.label}</p>
-                <p className="text-xs text-gray-500 mt-1">{item.desc}</p>
-              </div>
-            ))}
-          </div>
-          <div className="text-center mt-8">
-            <Link
-              href="/resources/methodology"
-              className="text-blue-600 font-medium hover:text-blue-700"
-            >
-              Read full methodology →
-            </Link>
-          </div>
-        </div>
-      </div>
-
-      {/* FAQ */}
-      <div className="max-w-4xl mx-auto px-4 py-12">
-        <div className="text-center mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center justify-center gap-2">
-            <HelpCircle className="w-6 h-6" />
-            Frequently Asked Questions
-          </h2>
-        </div>
-        <div className="space-y-4">
-          {faqs.map((faq) => (
-            <div key={faq.question} className="card p-6">
-              <h3 className="font-semibold text-gray-900 mb-2">{faq.question}</h3>
-              <p className="text-gray-600 text-sm">{faq.answer}</p>
-            </div>
-          ))}
-        </div>
-        <div className="text-center mt-8">
-          <p className="text-gray-600 mb-4">Still have questions?</p>
-          <Link href="/contact" className="btn-primary">
-            Contact Support
+          </Link>
+          <Link
+            href="/resources/blog"
+            className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-lg transition-shadow"
+          >
+            <FileText className="w-8 h-8 text-green-600 mb-4" />
+            <h3 className="font-semibold text-gray-900 mb-2">Blog</h3>
+            <p className="text-sm text-gray-600">
+              Industry insights and compliance trends
+            </p>
+          </Link>
+          <Link
+            href="/resources/faq"
+            className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-lg transition-shadow"
+          >
+            <HelpCircle className="w-8 h-8 text-amber-600 mb-4" />
+            <h3 className="font-semibold text-gray-900 mb-2">FAQ</h3>
+            <p className="text-sm text-gray-600">
+              Answers to common questions about GovernAtlas
+            </p>
+          </Link>
+          <Link
+            href="/resources/glossary"
+            className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-lg transition-shadow"
+          >
+            <BookMarked className="w-8 h-8 text-purple-600 mb-4" />
+            <h3 className="font-semibold text-gray-900 mb-2">Glossary</h3>
+            <p className="text-sm text-gray-600">
+              Definitions of compliance and AI terms
+            </p>
           </Link>
         </div>
-      </div>
+      </section>
+
+      {/* Latest Blog Posts */}
+      <section className="max-w-7xl mx-auto px-4 py-12">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-bold text-gray-900">Latest Articles</h2>
+          <Link
+            href="/resources/blog"
+            className="text-blue-600 text-sm font-medium flex items-center gap-1 hover:text-blue-700"
+          >
+            View all <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
+        <div className="grid md:grid-cols-3 gap-6">
+          {featuredPosts.map((post) => (
+            <Link
+              key={post.id}
+              href={`/resources/blog/${post.slug}`}
+              className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow"
+            >
+              <div className="p-6">
+                <span className="text-xs font-medium text-blue-600 uppercase">
+                  {post.category.replace('-', ' ')}
+                </span>
+                <h3 className="font-semibold text-gray-900 mt-2 mb-2 line-clamp-2">
+                  {post.title}
+                </h3>
+                <p className="text-sm text-gray-600 line-clamp-2 mb-4">
+                  {post.excerpt}
+                </p>
+                <div className="flex items-center gap-4 text-xs text-gray-500">
+                  <span className="flex items-center gap-1">
+                    <Clock className="w-3 h-3" />
+                    {post.publishedAt}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Eye className="w-3 h-3" />
+                    {post.viewCount.toLocaleString()} views
+                  </span>
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {/* Guides */}
+      <section className="max-w-7xl mx-auto px-4 py-12">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-bold text-gray-900">Popular Guides</h2>
+          <Link
+            href="/resources/guides"
+            className="text-blue-600 text-sm font-medium flex items-center gap-1 hover:text-blue-700"
+          >
+            View all <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
+        <div className="grid md:grid-cols-3 gap-6">
+          {featuredGuides.map((guide) => (
+            <Link
+              key={guide.id}
+              href={`/resources/guides/${guide.slug}`}
+              className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-lg transition-shadow"
+            >
+              <div className="flex items-center gap-2 mb-3">
+                <BookOpen className="w-5 h-5 text-blue-600" />
+                <span className="text-xs font-medium text-gray-500 uppercase">
+                  {guide.category}
+                </span>
+              </div>
+              <h3 className="font-semibold text-gray-900 mb-2">{guide.title}</h3>
+              <p className="text-sm text-gray-600 line-clamp-2">
+                {guide.description}
+              </p>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {/* FAQ Preview */}
+      <section className="max-w-7xl mx-auto px-4 py-12">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-bold text-gray-900">Frequently Asked Questions</h2>
+          <Link
+            href="/resources/faq"
+            className="text-blue-600 text-sm font-medium flex items-center gap-1 hover:text-blue-700"
+          >
+            View all <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
+        <div className="bg-white rounded-lg border border-gray-200 divide-y divide-gray-200">
+          {featuredFaqs.map((faq) => (
+            <div key={faq.id} className="p-6">
+              <h3 className="font-semibold text-gray-900 mb-2">{faq.question}</h3>
+              <p className="text-sm text-gray-600">{faq.answer}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="max-w-7xl mx-auto px-4 py-12">
+        <div className="bg-blue-600 rounded-lg p-8 text-center">
+          <h2 className="text-2xl font-bold text-white mb-4">
+            Need help finding the right AI tool?
+          </h2>
+          <p className="text-blue-100 mb-6 max-w-xl mx-auto">
+            Browse our directory of verified AI tools built for regulated industries.
+          </p>
+          <Link
+            href="/browse"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-white text-blue-600 rounded-lg hover:bg-blue-50 font-medium transition-colors"
+          >
+            Browse Tools <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
+      </section>
     </div>
   );
 }
