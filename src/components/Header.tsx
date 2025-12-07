@@ -49,9 +49,9 @@ export default function Header() {
             <Image
               src="/GovernAtlas.png"
               alt="GovernAtlas"
-              width={32}
-              height={32}
-              className="w-8 h-8"
+              width={40}
+              height={40}
+              className="w-10 h-10"
             />
             <span className="font-bold text-gray-900 text-xl">GovernAtlas</span>
           </Link>

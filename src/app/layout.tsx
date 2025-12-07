@@ -23,6 +23,7 @@ export const metadata: Metadata = {
     'governance',
   ],
   authors: [{ name: 'GovernAtlas' }],
+  metadataBase: new URL('https://governatlas.com'),
   openGraph: {
     title: 'GovernAtlas - AI Tools for Regulated Industries',
     description:
