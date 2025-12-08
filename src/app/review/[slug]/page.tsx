@@ -146,8 +146,30 @@ export default function WriteReviewPage({ params }: PageProps) {
 
       console.log('Review submission:', reviewData);
 
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Simulate API call (in production, save to Supabase)
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      // Send notification email
+      try {
+        await fetch('/api/send-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'review-submitted',
+            data: {
+              reviewerEmail: user?.email || '',
+              reviewerName: role || user?.email?.split('@')[0] || 'Anonymous',
+              toolName: tool.name,
+              rating,
+              title: title.trim(),
+              content: `Pros:\n${pros.trim()}\n\nCons:\n${cons.trim()}\n\nUse Case: ${useCase}\nUsage Duration: ${usageDuration}\nWould Recommend: ${wouldRecommend ? 'Yes' : 'No'}`,
+            },
+          }),
+        });
+      } catch (emailError) {
+        console.error('Failed to send email notification:', emailError);
+        // Don't fail the submission if email fails
+      }
 
       setSubmitted(true);
 

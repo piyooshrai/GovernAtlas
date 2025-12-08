@@ -307,6 +307,29 @@ export default function VendorSubmissionPage() {
 
       if (submitError) throw submitError;
 
+      // Send confirmation and notification emails
+      try {
+        await fetch('/api/send-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'vendor-submission',
+            data: {
+              vendorEmail: formData.contactEmail,
+              vendorName: formData.contactName,
+              companyName: formData.companyName,
+              toolName: formData.toolName,
+              website: formData.companyWebsite,
+              category: formData.selectedIndustries.join(', '),
+              description: formData.toolDescription || formData.toolTagline || 'No description provided',
+            },
+          }),
+        });
+      } catch (emailError) {
+        console.error('Failed to send email notifications:', emailError);
+        // Don't fail the submission if email fails
+      }
+
       setSuccess(true);
     } catch (err: any) {
       setError(err.message || 'Failed to submit. Please try again.');

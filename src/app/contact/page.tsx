@@ -30,12 +30,27 @@ export default function ContactPage() {
     setError('');
 
     try {
-      // In production, this would submit to Supabase or an API endpoint
-      // For now, we'll simulate a successful submission
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Get subject label from subjects array
+      const subjectLabel = subjects.find(s => s.value === formData.subject)?.label || formData.subject;
 
-      // Log the submission (in production, save to database)
-      console.log('Contact form submission:', formData);
+      // Send email via API
+      const response = await fetch('/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'contact-form',
+          data: {
+            name: formData.name,
+            email: formData.email,
+            subject: subjectLabel,
+            message: formData.message,
+          },
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to send message');
+      }
 
       setSubmitted(true);
     } catch (err) {
