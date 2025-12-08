@@ -26,6 +26,7 @@ export const metadata: Metadata = {
   metadataBase: new URL('https://governatlas.com'),
   icons: {
     icon: [
+      { url: '/GovernAtlas.ico', sizes: 'any' },
       { url: '/GovernAtlas.png', type: 'image/png' },
     ],
     apple: [
