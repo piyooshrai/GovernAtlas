@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     'governance',
   ],
   authors: [{ name: 'GovernAtlas' }],
-  metadataBase: new URL('https://governatlas.com'),
+  metadataBase: new URL('https://www.governatlas.com'),
   icons: {
     icon: [
       { url: '/GovernAtlas.ico', sizes: 'any' },
