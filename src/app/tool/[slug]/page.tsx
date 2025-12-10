@@ -1,7 +1,5 @@
-'use client';
-
 import React from 'react';
-import { useParams, notFound } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import {
   Star,
@@ -12,48 +10,50 @@ import {
   Calendar,
   Building2,
   Globe,
-  GitCompare,
   ChevronRight,
   Shield,
   Clock,
   ThumbsUp,
   ThumbsDown,
 } from 'lucide-react';
-import { getToolBySlug, tools } from '@/data/tools';
-import { getReviewsByToolId } from '@/data/reviews';
-import { useCompare } from '@/context/CompareContext';
+import { getToolBySlug, getRelatedTools } from '@/lib/supabase/tools';
 import { ToolCard } from '@/components';
+import { Metadata } from 'next';
+import ToolDetailClient from './ToolDetailClient';
 
-export default function ToolDetailPage() {
-  const params = useParams();
-  const slug = params.slug as string;
-  const tool = getToolBySlug(slug);
-  const { addToCompare, removeFromCompare, isInCompare, canAddMore } = useCompare();
+interface PageProps {
+  params: Promise<{ slug: string }>;
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const tool = await getToolBySlug(slug);
+
+  if (!tool) {
+    return {
+      title: 'Tool Not Found | GovernAtlas',
+    };
+  }
+
+  return {
+    title: `${tool.name} | GovernAtlas`,
+    description: tool.tagline || tool.description,
+    openGraph: {
+      title: `${tool.name} | GovernAtlas`,
+      description: tool.tagline || tool.description,
+    },
+  };
+}
+
+export default async function ToolDetailPage({ params }: PageProps) {
+  const { slug } = await params;
+  const tool = await getToolBySlug(slug);
 
   if (!tool) {
     notFound();
   }
 
-  const reviews = getReviewsByToolId(tool.id);
-  const inCompare = isInCompare(tool.id);
-
-  // Get related tools (same industry, different tool)
-  const relatedTools = tools
-    .filter(
-      (t) =>
-        t.id !== tool.id &&
-        t.industries.some((i) => tool.industries.includes(i))
-    )
-    .slice(0, 3);
-
-  const handleCompareToggle = () => {
-    if (inCompare) {
-      removeFromCompare(tool.id);
-    } else if (canAddMore) {
-      addToCompare(tool);
-    }
-  };
-
+  const relatedTools = await getRelatedTools(tool.id, tool.industries, 3);
   const scoreDisplay = (tool.score / 20).toFixed(1);
 
   return (
@@ -70,13 +70,17 @@ export default function ToolDetailPage() {
               Browse
             </Link>
             <ChevronRight className="w-4 h-4" />
-            <Link
-              href={`/browse?industry=${encodeURIComponent(tool.industries[0])}`}
-              className="hover:text-gray-700"
-            >
-              {tool.industries[0]}
-            </Link>
-            <ChevronRight className="w-4 h-4" />
+            {tool.industries[0] && (
+              <>
+                <Link
+                  href={`/browse?industry=${encodeURIComponent(tool.industries[0])}`}
+                  className="hover:text-gray-700"
+                >
+                  {tool.industries[0]}
+                </Link>
+                <ChevronRight className="w-4 h-4" />
+              </>
+            )}
             <span className="text-gray-900">{tool.name}</span>
           </nav>
         </div>
@@ -99,18 +103,24 @@ export default function ToolDetailPage() {
               <p className="text-gray-700 mb-6 max-w-3xl">{tool.tagline}</p>
 
               <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
-                <span className="flex items-center gap-1">
-                  <MapPin className="w-4 h-4" />
-                  {tool.location}
-                </span>
-                <span className="flex items-center gap-1">
-                  <Users className="w-4 h-4" />
-                  {tool.size} employees
-                </span>
-                <span className="flex items-center gap-1">
-                  <Calendar className="w-4 h-4" />
-                  Founded {tool.founded}
-                </span>
+                {tool.location && (
+                  <span className="flex items-center gap-1">
+                    <MapPin className="w-4 h-4" />
+                    {tool.location}
+                  </span>
+                )}
+                {tool.size && (
+                  <span className="flex items-center gap-1">
+                    <Users className="w-4 h-4" />
+                    {tool.size} employees
+                  </span>
+                )}
+                {tool.founded > 0 && (
+                  <span className="flex items-center gap-1">
+                    <Calendar className="w-4 h-4" />
+                    Founded {tool.founded}
+                  </span>
+                )}
                 <span className="flex items-center gap-1">
                   <Clock className="w-4 h-4" />
                   Updated {new Date(tool.lastUpdated).toLocaleDateString()}
@@ -131,27 +141,7 @@ export default function ToolDetailPage() {
                 </p>
               </div>
 
-              <div className="flex gap-3">
-                <button
-                  onClick={handleCompareToggle}
-                  className={`btn-secondary flex items-center gap-2 ${
-                    inCompare ? 'bg-blue-50 border-blue-200 text-blue-700' : ''
-                  }`}
-                  disabled={!canAddMore && !inCompare}
-                >
-                  <GitCompare className="w-4 h-4" />
-                  {inCompare ? 'Remove from Compare' : 'Add to Compare'}
-                </button>
-                <a
-                  href={tool.website}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="btn-primary flex items-center gap-2"
-                >
-                  Visit Website
-                  <ExternalLink className="w-4 h-4" />
-                </a>
-              </div>
+              <ToolDetailClient tool={tool} />
             </div>
           </div>
         </div>
@@ -169,41 +159,45 @@ export default function ToolDetailPage() {
             </section>
 
             {/* Features */}
-            <section className="card p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                Key Features
-              </h2>
-              <div className="grid sm:grid-cols-2 gap-3">
-                {tool.features.map((feature, index) => (
-                  <div
-                    key={index}
-                    className="flex items-start gap-2 text-gray-700"
-                  >
-                    <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                    <span>{feature}</span>
-                  </div>
-                ))}
-              </div>
-            </section>
+            {tool.features.length > 0 && (
+              <section className="card p-6">
+                <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                  Key Features
+                </h2>
+                <div className="grid sm:grid-cols-2 gap-3">
+                  {tool.features.map((feature, index) => (
+                    <div
+                      key={index}
+                      className="flex items-start gap-2 text-gray-700"
+                    >
+                      <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                      <span>{feature}</span>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
 
             {/* Integrations */}
-            <section className="card p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                Integrations
-              </h2>
-              <div className="flex flex-wrap gap-2">
-                {tool.integrations.map((integration) => (
-                  <span
-                    key={integration}
-                    className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-sm"
-                  >
-                    {integration}
-                  </span>
-                ))}
-              </div>
-            </section>
+            {tool.integrations.length > 0 && (
+              <section className="card p-6">
+                <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                  Integrations
+                </h2>
+                <div className="flex flex-wrap gap-2">
+                  {tool.integrations.map((integration) => (
+                    <span
+                      key={integration}
+                      className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-sm"
+                    >
+                      {integration}
+                    </span>
+                  ))}
+                </div>
+              </section>
+            )}
 
-            {/* Reviews */}
+            {/* Reviews Section */}
             <section className="card p-6">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-semibold text-gray-900">
@@ -217,165 +211,96 @@ export default function ToolDetailPage() {
                 </Link>
               </div>
 
-              {reviews.length > 0 ? (
-                <div className="space-y-6">
-                  {reviews.map((review) => (
-                    <div
-                      key={review.id}
-                      className="border-b border-gray-100 pb-6 last:border-0 last:pb-0"
-                    >
-                      <div className="flex items-start justify-between mb-3">
-                        <div>
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="font-medium text-gray-900">
-                              {review.author}
-                            </span>
-                            {review.verified && (
-                              <span className="text-xs text-green-600 flex items-center gap-1">
-                                <CheckCircle className="w-3 h-3" /> Verified
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-sm text-gray-500">
-                            {review.role} at {review.company}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          {[...Array(5)].map((_, i) => (
-                            <Star
-                              key={i}
-                              className={`w-4 h-4 ${
-                                i < review.rating
-                                  ? 'fill-yellow-400 text-yellow-400'
-                                  : 'text-gray-200'
-                              }`}
-                            />
-                          ))}
-                        </div>
-                      </div>
-
-                      <h4 className="font-medium text-gray-900 mb-2">
-                        {review.title}
-                      </h4>
-                      <p className="text-gray-700 mb-4">{review.content}</p>
-
-                      <div className="grid sm:grid-cols-2 gap-4">
-                        <div>
-                          <p className="text-sm font-medium text-gray-900 mb-2 flex items-center gap-1">
-                            <ThumbsUp className="w-4 h-4 text-green-500" /> Pros
-                          </p>
-                          <ul className="text-sm text-gray-600 space-y-1">
-                            {review.pros.map((pro, i) => (
-                              <li key={i}>+ {pro}</li>
-                            ))}
-                          </ul>
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-900 mb-2 flex items-center gap-1">
-                            <ThumbsDown className="w-4 h-4 text-red-500" /> Cons
-                          </p>
-                          <ul className="text-sm text-gray-600 space-y-1">
-                            {review.cons.map((con, i) => (
-                              <li key={i}>- {con}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      </div>
-
-                      <p className="text-xs text-gray-400 mt-4">
-                        {new Date(review.date).toLocaleDateString('en-US', {
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric',
-                        })}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8 text-gray-500">
-                  <p>No reviews yet. Be the first to review this tool!</p>
-                  <Link href={`/review/${slug}`} className="btn-primary mt-4 inline-block">
-                    Write a Review
-                  </Link>
-                </div>
-              )}
+              <div className="text-center py-8 text-gray-500">
+                <p>No reviews yet. Be the first to review this tool!</p>
+                <Link href={`/review/${slug}`} className="btn-primary mt-4 inline-block">
+                  Write a Review
+                </Link>
+              </div>
             </section>
           </div>
 
           {/* Right Column - Sidebar */}
           <div className="space-y-6">
             {/* Certifications */}
-            <section className="card p-6">
-              <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <Shield className="w-5 h-5 text-blue-600" />
-                Compliance & Certifications
-              </h3>
-              <div className="space-y-2">
-                {tool.certifications.map((cert) => (
-                  <div
-                    key={cert}
-                    className="flex items-center gap-2 px-3 py-2 bg-green-50 text-green-800 rounded-lg text-sm"
-                  >
-                    <CheckCircle className="w-4 h-4" />
-                    {cert}
-                  </div>
-                ))}
-              </div>
-            </section>
+            {tool.certifications.length > 0 && (
+              <section className="card p-6">
+                <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                  <Shield className="w-5 h-5 text-blue-600" />
+                  Compliance & Certifications
+                </h3>
+                <div className="space-y-2">
+                  {tool.certifications.map((cert) => (
+                    <div
+                      key={cert}
+                      className="flex items-center gap-2 px-3 py-2 bg-green-50 text-green-800 rounded-lg text-sm"
+                    >
+                      <CheckCircle className="w-4 h-4" />
+                      {cert}
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
 
             {/* Industries */}
-            <section className="card p-6">
-              <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <Building2 className="w-5 h-5 text-blue-600" />
-                Industries
-              </h3>
-              <div className="flex flex-wrap gap-2">
-                {tool.industries.map((industry) => (
-                  <Link
-                    key={industry}
-                    href={`/browse?industry=${encodeURIComponent(industry)}`}
-                    className="px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg text-sm hover:bg-blue-100"
-                  >
-                    {industry}
-                  </Link>
-                ))}
-              </div>
-            </section>
+            {tool.industries.length > 0 && (
+              <section className="card p-6">
+                <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                  <Building2 className="w-5 h-5 text-blue-600" />
+                  Industries
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {tool.industries.map((industry) => (
+                    <Link
+                      key={industry}
+                      href={`/browse?industry=${encodeURIComponent(industry)}`}
+                      className="px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg text-sm hover:bg-blue-100"
+                    >
+                      {industry}
+                    </Link>
+                  ))}
+                </div>
+              </section>
+            )}
 
             {/* Use Cases */}
-            <section className="card p-6">
-              <h3 className="font-semibold text-gray-900 mb-4">Use Cases</h3>
-              <div className="flex flex-wrap gap-2">
-                {tool.useCases.map((useCase) => (
-                  <Link
-                    key={useCase}
-                    href={`/browse?useCase=${encodeURIComponent(useCase)}`}
-                    className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-sm hover:bg-gray-200"
-                  >
-                    {useCase}
-                  </Link>
-                ))}
-              </div>
-            </section>
+            {tool.useCases.length > 0 && (
+              <section className="card p-6">
+                <h3 className="font-semibold text-gray-900 mb-4">Use Cases</h3>
+                <div className="flex flex-wrap gap-2">
+                  {tool.useCases.map((useCase) => (
+                    <Link
+                      key={useCase}
+                      href={`/browse?useCase=${encodeURIComponent(useCase)}`}
+                      className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-sm hover:bg-gray-200"
+                    >
+                      {useCase}
+                    </Link>
+                  ))}
+                </div>
+              </section>
+            )}
 
             {/* Deployment */}
-            <section className="card p-6">
-              <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <Globe className="w-5 h-5 text-blue-600" />
-                Deployment Options
-              </h3>
-              <div className="flex flex-wrap gap-2">
-                {tool.deploymentOptions.map((option) => (
-                  <span
-                    key={option}
-                    className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-sm"
-                  >
-                    {option}
-                  </span>
-                ))}
-              </div>
-            </section>
+            {tool.deploymentOptions.length > 0 && (
+              <section className="card p-6">
+                <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                  <Globe className="w-5 h-5 text-blue-600" />
+                  Deployment Options
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {tool.deploymentOptions.map((option) => (
+                    <span
+                      key={option}
+                      className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-sm"
+                    >
+                      {option}
+                    </span>
+                  ))}
+                </div>
+              </section>
+            )}
 
             {/* Pricing */}
             <section className="card p-6">
@@ -386,17 +311,19 @@ export default function ToolDetailPage() {
             </section>
 
             {/* Support */}
-            <section className="card p-6">
-              <h3 className="font-semibold text-gray-900 mb-4">Support Options</h3>
-              <ul className="space-y-2 text-sm text-gray-700">
-                {tool.supportOptions.map((option) => (
-                  <li key={option} className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
-                    {option}
-                  </li>
-                ))}
-              </ul>
-            </section>
+            {tool.supportOptions.length > 0 && (
+              <section className="card p-6">
+                <h3 className="font-semibold text-gray-900 mb-4">Support Options</h3>
+                <ul className="space-y-2 text-sm text-gray-700">
+                  {tool.supportOptions.map((option) => (
+                    <li key={option} className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-green-500" />
+                      {option}
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
           </div>
         </div>
 
