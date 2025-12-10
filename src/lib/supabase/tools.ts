@@ -182,6 +182,83 @@ export async function getTopRatedTools(limit: number = 6): Promise<FrontendTool[
     .slice(0, limit);
 }
 
+// Fetch a single tool by slug
+export async function getToolBySlug(slug: string): Promise<FrontendTool | null> {
+  const supabase = await createClient();
+
+  // Fetch the tool with vendor data
+  const { data: tool, error: toolError } = await supabase
+    .from('tools')
+    .select(`
+      *,
+      vendors (
+        name,
+        location,
+        size,
+        founded,
+        website
+      )
+    `)
+    .eq('slug', slug)
+    .single();
+
+  if (toolError || !tool) {
+    console.error('Error fetching tool:', toolError);
+    return null;
+  }
+
+  const toolData = tool as ToolWithRelations;
+
+  // Fetch industries for this tool
+  const { data: toolIndustries } = await supabase
+    .from('tool_industries')
+    .select(`
+      industries (
+        name
+      )
+    `)
+    .eq('tool_id', toolData.id);
+
+  // Fetch use cases for this tool
+  const { data: toolUseCases } = await supabase
+    .from('tool_use_cases')
+    .select(`
+      use_cases (
+        name
+      )
+    `)
+    .eq('tool_id', toolData.id);
+
+  // Fetch certifications for this tool
+  const { data: toolCertifications } = await supabase
+    .from('tool_certifications')
+    .select(`
+      certifications (
+        name
+      )
+    `)
+    .eq('tool_id', toolData.id);
+
+  // Extract names from related data
+  const industries = toolIndustries?.map((ti: any) => ti.industries?.name).filter(Boolean) || [];
+  const useCases = toolUseCases?.map((tu: any) => tu.use_cases?.name).filter(Boolean) || [];
+  const certifications = toolCertifications?.map((tc: any) => tc.certifications?.name).filter(Boolean) || [];
+
+  return transformTool(toolData, industries, useCases, certifications);
+}
+
+// Fetch related tools (same industry, different tool)
+export async function getRelatedTools(toolId: string, industries: string[], limit: number = 3): Promise<FrontendTool[]> {
+  const allTools = await getTools();
+  return allTools
+    .filter(
+      (t) =>
+        t.id !== toolId &&
+        t.industries.some((i) => industries.includes(i))
+    )
+    .slice(0, limit);
+}
+
 // Fetch industries with tool counts
 export async function getIndustriesWithCounts(): Promise<{ name: string; slug: string; toolCount: number }[]> {
   const supabase = await createClient();
