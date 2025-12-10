@@ -92,6 +92,12 @@ export default function WriteReviewPage({ params }: PageProps) {
     e.preventDefault();
     setError('');
 
+    // Check if tool exists
+    if (!tool) {
+      setError('Tool not found');
+      return;
+    }
+
     // Validation
     if (rating === 0) {
       setError('Please select a rating');
