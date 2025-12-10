@@ -71,6 +71,7 @@ export async function getTools(): Promise<FrontendTool[]> {
   const supabase = await createClient();
 
   // Fetch tools with vendor data
+  // Note: RLS policy controls visibility based on status
   const { data: tools, error: toolsError } = await supabase
     .from('tools')
     .select(`
@@ -83,7 +84,6 @@ export async function getTools(): Promise<FrontendTool[]> {
         website
       )
     `)
-    .eq('status', 'approved')
     .order('score', { ascending: false });
 
   if (toolsError) {
@@ -272,7 +272,7 @@ export async function getStats(): Promise<{ toolCount: number; industryCount: nu
   const supabase = await createClient();
 
   const [toolsResult, industriesResult, certificationsResult] = await Promise.all([
-    supabase.from('tools').select('id', { count: 'exact', head: true }).eq('status', 'approved'),
+    supabase.from('tools').select('id', { count: 'exact', head: true }),
     supabase.from('industries').select('id', { count: 'exact', head: true }),
     supabase.from('certifications').select('id', { count: 'exact', head: true }),
   ]);
