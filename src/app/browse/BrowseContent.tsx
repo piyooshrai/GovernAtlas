@@ -4,8 +4,14 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Filter, X, ChevronDown, Grid3X3, List, SlidersHorizontal } from 'lucide-react';
 import { ToolCard, SearchBar, FilterSidebar } from '@/components';
-import { tools, industries, useCases, certifications } from '@/data/tools';
-import { Industry, UseCase, Certification, PricingTier, DeploymentOption } from '@/types';
+import { Tool, Industry, UseCase, Certification, PricingTier, DeploymentOption } from '@/types';
+
+interface BrowseContentProps {
+  initialTools: Tool[];
+  availableIndustries: string[];
+  availableUseCases: string[];
+  availableCertifications: string[];
+}
 
 interface FilterState {
   industries: Industry[];
@@ -37,7 +43,12 @@ const sortOptions: { value: SortOption; label: string }[] = [
   { value: 'name', label: 'Name (A-Z)' },
 ];
 
-export default function BrowseContent() {
+export default function BrowseContent({
+  initialTools,
+  availableIndustries,
+  availableUseCases,
+  availableCertifications,
+}: BrowseContentProps) {
   const searchParams = useSearchParams();
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState<FilterState>(defaultFilters);
@@ -57,21 +68,21 @@ export default function BrowseContent() {
     if (sort && sortOptions.some((s) => s.value === sort)) setSortBy(sort);
 
     const newFilters = { ...defaultFilters };
-    if (industry && industries.includes(industry as any)) {
+    if (industry && availableIndustries.includes(industry)) {
       newFilters.industries = [industry as Industry];
     }
-    if (useCase && useCases.includes(useCase as any)) {
+    if (useCase && availableUseCases.includes(useCase)) {
       newFilters.useCases = [useCase as UseCase];
     }
-    if (certification && certifications.includes(certification as any)) {
+    if (certification && availableCertifications.includes(certification)) {
       newFilters.certifications = [certification as Certification];
     }
     setFilters(newFilters);
-  }, [searchParams]);
+  }, [searchParams, availableIndustries, availableUseCases, availableCertifications]);
 
   // Filter and sort tools
   const filteredTools = useMemo(() => {
-    let result = [...tools];
+    let result = [...initialTools];
 
     // Apply search query
     if (searchQuery) {
@@ -151,7 +162,7 @@ export default function BrowseContent() {
     }
 
     return result;
-  }, [searchQuery, filters, sortBy]);
+  }, [searchQuery, filters, sortBy, initialTools]);
 
   const clearFilters = () => {
     setFilters(defaultFilters);
@@ -259,6 +270,9 @@ export default function BrowseContent() {
               filters={filters}
               onFiltersChange={setFilters}
               onClearFilters={clearFilters}
+              industries={availableIndustries as Industry[]}
+              useCases={availableUseCases as UseCase[]}
+              certifications={availableCertifications as Certification[]}
             />
           </div>
 
@@ -443,6 +457,9 @@ export default function BrowseContent() {
                 filters={filters}
                 onFiltersChange={setFilters}
                 onClearFilters={clearFilters}
+                industries={availableIndustries as Industry[]}
+                useCases={availableUseCases as UseCase[]}
+                certifications={availableCertifications as Certification[]}
               />
             </div>
             <div className="sticky bottom-0 bg-white border-t border-gray-200 p-4">

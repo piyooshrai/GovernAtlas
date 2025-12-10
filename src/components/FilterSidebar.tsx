@@ -2,8 +2,11 @@
 
 import React from 'react';
 import { Filter, X } from 'lucide-react';
-import { industries, useCases, certifications, pricingTiers, deploymentOptions } from '@/data/tools';
 import { Industry, UseCase, Certification, PricingTier, DeploymentOption } from '@/types';
+
+// Pricing and deployment options are static enums, not from database
+const pricingTiers: PricingTier[] = ['Free', 'Freemium', 'Subscription', 'Enterprise', 'Contact Sales'];
+const deploymentOptionsList: DeploymentOption[] = ['Cloud', 'SaaS', 'On-Premise', 'Hybrid', 'Private Cloud', 'VPC', 'Air-gapped'];
 
 interface FilterState {
   industries: Industry[];
@@ -19,12 +22,18 @@ interface FilterSidebarProps {
   filters: FilterState;
   onFiltersChange: (filters: FilterState) => void;
   onClearFilters: () => void;
+  industries?: Industry[];
+  useCases?: UseCase[];
+  certifications?: Certification[];
 }
 
 export default function FilterSidebar({
   filters,
   onFiltersChange,
   onClearFilters,
+  industries = [],
+  useCases = [],
+  certifications = [],
 }: FilterSidebarProps) {
   const hasActiveFilters =
     filters.industries.length > 0 ||
@@ -65,79 +74,85 @@ export default function FilterSidebar({
 
         <div className="space-y-6">
           {/* Industry Filter */}
-          <div>
-            <label className="text-sm font-medium text-gray-700 block mb-2">
-              Industry
-            </label>
-            <div className="space-y-2 max-h-48 overflow-y-auto">
-              {industries.map((industry) => (
-                <label
-                  key={industry}
-                  className="flex items-center gap-2 cursor-pointer group"
-                >
-                  <input
-                    type="checkbox"
-                    checked={filters.industries.includes(industry as Industry)}
-                    onChange={() => toggleArrayFilter('industries', industry as Industry)}
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                  />
-                  <span className="text-sm text-gray-700 group-hover:text-gray-900">
-                    {industry}
-                  </span>
-                </label>
-              ))}
+          {industries.length > 0 && (
+            <div>
+              <label className="text-sm font-medium text-gray-700 block mb-2">
+                Industry
+              </label>
+              <div className="space-y-2 max-h-48 overflow-y-auto">
+                {industries.map((industry) => (
+                  <label
+                    key={industry}
+                    className="flex items-center gap-2 cursor-pointer group"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={filters.industries.includes(industry)}
+                      onChange={() => toggleArrayFilter('industries', industry)}
+                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="text-sm text-gray-700 group-hover:text-gray-900">
+                      {industry}
+                    </span>
+                  </label>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Use Case Filter */}
-          <div>
-            <label className="text-sm font-medium text-gray-700 block mb-2">
-              Use Case
-            </label>
-            <div className="space-y-2 max-h-48 overflow-y-auto">
-              {useCases.map((useCase) => (
-                <label
-                  key={useCase}
-                  className="flex items-center gap-2 cursor-pointer group"
-                >
-                  <input
-                    type="checkbox"
-                    checked={filters.useCases.includes(useCase as UseCase)}
-                    onChange={() => toggleArrayFilter('useCases', useCase as UseCase)}
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                  />
-                  <span className="text-sm text-gray-700 group-hover:text-gray-900">
-                    {useCase}
-                  </span>
-                </label>
-              ))}
+          {useCases.length > 0 && (
+            <div>
+              <label className="text-sm font-medium text-gray-700 block mb-2">
+                Use Case
+              </label>
+              <div className="space-y-2 max-h-48 overflow-y-auto">
+                {useCases.map((useCase) => (
+                  <label
+                    key={useCase}
+                    className="flex items-center gap-2 cursor-pointer group"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={filters.useCases.includes(useCase)}
+                      onChange={() => toggleArrayFilter('useCases', useCase)}
+                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="text-sm text-gray-700 group-hover:text-gray-900">
+                      {useCase}
+                    </span>
+                  </label>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Certifications Filter */}
-          <div>
-            <label className="text-sm font-medium text-gray-700 block mb-2">
-              Certifications
-            </label>
-            <div className="space-y-2 max-h-48 overflow-y-auto">
-              {certifications.map((cert) => (
-                <label
-                  key={cert}
-                  className="flex items-center gap-2 cursor-pointer group"
-                >
-                  <input
-                    type="checkbox"
-                    checked={filters.certifications.includes(cert as Certification)}
-                    onChange={() => toggleArrayFilter('certifications', cert as Certification)}
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                  />
-                  <span className="text-sm text-gray-700 group-hover:text-gray-900">
-                    {cert}
-                  </span>
-                </label>
-              ))}
+          {certifications.length > 0 && (
+            <div>
+              <label className="text-sm font-medium text-gray-700 block mb-2">
+                Certifications
+              </label>
+              <div className="space-y-2 max-h-48 overflow-y-auto">
+                {certifications.map((cert) => (
+                  <label
+                    key={cert}
+                    className="flex items-center gap-2 cursor-pointer group"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={filters.certifications.includes(cert)}
+                      onChange={() => toggleArrayFilter('certifications', cert)}
+                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="text-sm text-gray-700 group-hover:text-gray-900">
+                      {cert}
+                    </span>
+                  </label>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Min Score Filter */}
           <div>
@@ -171,8 +186,8 @@ export default function FilterSidebar({
                 >
                   <input
                     type="checkbox"
-                    checked={filters.pricing.includes(pricing as PricingTier)}
-                    onChange={() => toggleArrayFilter('pricing', pricing as PricingTier)}
+                    checked={filters.pricing.includes(pricing)}
+                    onChange={() => toggleArrayFilter('pricing', pricing)}
                     className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                   />
                   <span className="text-sm text-gray-700 group-hover:text-gray-900">
@@ -189,16 +204,16 @@ export default function FilterSidebar({
               Deployment
             </label>
             <div className="space-y-2">
-              {deploymentOptions.map((option) => (
+              {deploymentOptionsList.map((option) => (
                 <label
                   key={option}
                   className="flex items-center gap-2 cursor-pointer group"
                 >
                   <input
                     type="checkbox"
-                    checked={filters.deploymentOptions.includes(option as DeploymentOption)}
+                    checked={filters.deploymentOptions.includes(option)}
                     onChange={() =>
-                      toggleArrayFilter('deploymentOptions', option as DeploymentOption)
+                      toggleArrayFilter('deploymentOptions', option)
                     }
                     className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                   />

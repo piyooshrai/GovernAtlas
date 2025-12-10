@@ -1,11 +1,7 @@
 import Link from 'next/link';
 import {
   ArrowRight,
-  Building2,
   Shield,
-  Star,
-  Users,
-  CheckCircle,
   TrendingUp,
   Scale,
   Landmark,
@@ -13,31 +9,34 @@ import {
   Pill,
   GraduationCap,
   Factory,
-  Search,
 } from 'lucide-react';
 import { SearchBar, ToolCard } from '@/components';
-import { tools } from '@/data/tools';
+import { getTopRatedTools, getIndustriesWithCounts, getStats } from '@/lib/supabase/tools';
 
-const industries = [
-  { name: 'Healthcare', slug: 'healthcare', icon: <Shield className="w-8 h-8" /> },
-  { name: 'Financial Services', slug: 'financial-services', icon: <TrendingUp className="w-8 h-8" /> },
-  { name: 'Legal', slug: 'legal', icon: <Scale className="w-8 h-8" /> },
-  { name: 'Government', slug: 'government', icon: <Landmark className="w-8 h-8" /> },
-  { name: 'Insurance', slug: 'insurance', icon: <ShieldCheck className="w-8 h-8" /> },
-  { name: 'Pharmaceutical', slug: 'pharmaceutical', icon: <Pill className="w-8 h-8" /> },
-  { name: 'Education', slug: 'education', icon: <GraduationCap className="w-8 h-8" /> },
-  { name: 'Manufacturing', slug: 'manufacturing', icon: <Factory className="w-8 h-8" /> },
-];
+const industryIcons: Record<string, React.ReactNode> = {
+  'Healthcare': <Shield className="w-8 h-8" />,
+  'Financial Services': <TrendingUp className="w-8 h-8" />,
+  'Legal': <Scale className="w-8 h-8" />,
+  'Government': <Landmark className="w-8 h-8" />,
+  'Insurance': <ShieldCheck className="w-8 h-8" />,
+  'Pharmaceutical': <Pill className="w-8 h-8" />,
+  'Education': <GraduationCap className="w-8 h-8" />,
+  'Manufacturing': <Factory className="w-8 h-8" />,
+};
 
-const stats = [
-  { label: 'AI Tools', value: '75+' },
-  { label: 'Industries', value: '8' },
-  { label: 'Certifications Tracked', value: '15+' },
-];
+export default async function HomePage() {
+  // Fetch data from Supabase
+  const [topTools, industries, stats] = await Promise.all([
+    getTopRatedTools(6),
+    getIndustriesWithCounts(),
+    getStats(),
+  ]);
 
-export default function HomePage() {
-  // Get top-rated tools for the featured section
-  const topTools = [...tools].sort((a, b) => b.score - a.score).slice(0, 6);
+  const statsDisplay = [
+    { label: 'AI Tools', value: `${stats.toolCount}+` },
+    { label: 'Industries', value: String(stats.industryCount) },
+    { label: 'Certifications Tracked', value: `${stats.certificationCount}+` },
+  ];
 
   return (
     <div className="bg-gray-50">
@@ -50,7 +49,7 @@ export default function HomePage() {
           </h1>
 
           <p className="text-lg md:text-xl text-gray-600 mb-10 max-w-2xl mx-auto">
-            Browse 75+ verified AI tools with governance scores, compliance
+            Browse {stats.toolCount}+ verified AI tools with governance scores, compliance
             certifications, and real deployment data.
           </p>
 
@@ -90,7 +89,7 @@ export default function HomePage() {
       <section className="bg-blue-600">
         <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="grid grid-cols-3 gap-8">
-            {stats.map((stat) => (
+            {statsDisplay.map((stat) => (
               <div key={stat.label} className="text-center">
                 <p className="text-3xl font-bold text-white">{stat.value}</p>
                 <p className="text-sm text-blue-100 mt-1">{stat.label}</p>
@@ -112,28 +111,23 @@ export default function HomePage() {
           </Link>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {industries.map((industry) => {
-            const industryTools = tools.filter((t) =>
-              t.industries.includes(industry.name as any)
-            );
-            return (
-              <Link
-                key={industry.slug}
-                href={`/industries/${industry.slug}`}
-                className="p-6 bg-white border border-gray-200 rounded-lg hover:border-blue-500 hover:shadow-sm transition-all group"
-              >
-                <div className="text-gray-400 group-hover:text-blue-600 transition-colors mb-3">
-                  {industry.icon}
-                </div>
-                <h3 className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
-                  {industry.name}
-                </h3>
-                <p className="text-sm text-gray-500 mt-1">
-                  {industryTools.length} tools
-                </p>
-              </Link>
-            );
-          })}
+          {industries.map((industry) => (
+            <Link
+              key={industry.slug}
+              href={`/industries/${industry.slug}`}
+              className="p-6 bg-white border border-gray-200 rounded-lg hover:border-blue-500 hover:shadow-sm transition-all group"
+            >
+              <div className="text-gray-400 group-hover:text-blue-600 transition-colors mb-3">
+                {industryIcons[industry.name] || <Shield className="w-8 h-8" />}
+              </div>
+              <h3 className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
+                {industry.name}
+              </h3>
+              <p className="text-sm text-gray-500 mt-1">
+                {industry.toolCount} tools
+              </p>
+            </Link>
+          ))}
         </div>
       </section>
 

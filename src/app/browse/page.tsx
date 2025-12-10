@@ -1,6 +1,7 @@
 import { Suspense } from 'react';
 import { Metadata } from 'next';
 import BrowseContent from './BrowseContent';
+import { getTools, getFilterOptions } from '@/lib/supabase/tools';
 
 export const metadata: Metadata = {
   title: 'Browse AI Tools | GovernAtlas',
@@ -43,10 +44,27 @@ function BrowseLoading() {
   );
 }
 
+async function BrowsePageContent() {
+  // Fetch data from Supabase
+  const [tools, filterOptions] = await Promise.all([
+    getTools(),
+    getFilterOptions(),
+  ]);
+
+  return (
+    <BrowseContent
+      initialTools={tools}
+      availableIndustries={filterOptions.industries}
+      availableUseCases={filterOptions.useCases}
+      availableCertifications={filterOptions.certifications}
+    />
+  );
+}
+
 export default function BrowsePage() {
   return (
     <Suspense fallback={<BrowseLoading />}>
-      <BrowseContent />
+      <BrowsePageContent />
     </Suspense>
   );
 }
